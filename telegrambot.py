@@ -2,42 +2,10 @@ import telebot
 from environs import Env
 from telebot import types
 from random import *
-import sqlite3
+import alhimi
 
-class Database:
-    def __init__(self) -> None:
-        self.conn = sqlite3.connect("base.db", check_same_thread=False)
-        self.cursor = self.conn.cursor()
-    
-    def get_users(self, user_id):
-        self.cursor.execute(f"SELECT user_name FROM users WHERE id={user_id}")
-        return self.cursor.fetchone()[0]
 
-    def regitser(self, user_id, user_name):
-        self.cursor.execute(f"INSERT INTO users (id, user_name) VALUES (?, ?)", (user_id, user_name))
-        self.conn.commit()
-        return True
-    
-    def get_balance(self, user_id):
-        self.conn = sqlite3.connect("base.db", check_same_thread=False)
-        with self.conn:
-            self.cursor = self.conn.cursor()    
-            self.cursor.execute(f"SELECT balance FROM users WHERE id={user_id}")
-            return self.cursor.fetchone()[0]
-
-    
-    def update_balance(self, id, balance, status):
-        """
-        status = True - add balance
-        status = False - take balance
-        """
-        if status:
-            self.cursor.execute(f"UPDATE users SET balance=balance+? WHERE id=?", (balance, id))
-        else:
-            self.cursor.execute(f"UPDATE users SET balance=balance-? WHERE id=?", (balance, id))
-        self.conn.commit()
-        return True
-db = Database()
+db = alhimi.Database()
 
 env = Env()
 env.read_env()
@@ -49,7 +17,7 @@ bot = telebot.TeleBot(token)
 def start(message):
     user_id = message.from_user.id
     user_name = message.from_user.username
-    if db.get_users(user_id):
+    if db.get_user(user_id):
         bot.send_message(message.chat.id, "Добро пожаловать!")
     else:
         db.regitser(str(user_id), user_name)
